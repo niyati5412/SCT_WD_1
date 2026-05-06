@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KŌHI — Rare Coffee, Refined</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #f7f2ea; --warm: #ede5d5; --parchment: #e8dcc8;
+      --espresso: #18100a; --brown: #3a1c0d; --caramel: #c47c3a;
+      --gold: #c9993a; --gold-light: #e8c878; --muted: #7a6755;
+      --muted-light: #a89282; --nav-h: 76px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--cream); color: var(--espresso); font-family: 'DM Sans', sans-serif; overflow-x: hidden; cursor: none; }
+
+    #cur { width: 7px; height: 7px; background: var(--caramel); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
+    #cur-ring { width: 30px; height: 30px; border: 1px solid var(--caramel); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998; opacity: 0.5; transition: transform 0.35s cubic-bezier(.25,.46,.45,.94), width 0.3s, height 0.3s, opacity 0.3s; }
+    body.hovering #cur-ring { width: 48px; height: 48px; opacity: 0.25; }
+
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9000; opacity: 0.5; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); z-index: 1000; display: flex; align-items: center; padding: 0 5vw; transition: background 0.5s ease, box-shadow 0.5s ease; }
+    nav.scrolled { background: rgba(247,242,234,0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 1px 0 rgba(196,124,58,0.12); }
+
+    .nav-logo { text-decoration: none; flex-shrink: 0; line-height: 1; }
+    .nav-logo .logo-main { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.45rem; letter-spacing: 0.32em; color: var(--espresso); text-transform: uppercase; display: block; line-height: 1; }
+    .nav-logo .logo-main span { color: var(--caramel); }
+    .nav-logo .logo-sub { font-family: 'Cinzel', serif; font-weight: 400; font-size: 0.45rem; letter-spacing: 0.5em; color: var(--muted-light); text-transform: uppercase; display: block; margin-top: 4px; }
+
+    .nav-links { display: flex; gap: 2.8rem; list-style: none; margin: 0 auto; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; position: relative; padding: 4px 0; transition: color 0.3s; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -2px; left: 50%; right: 50%; height: 1px; background: var(--caramel); transition: left 0.35s ease, right 0.35s ease; }
+    .nav-links a:hover, .nav-links a.active { color: var(--espresso); }
+    .nav-links a:hover::after, .nav-links a.active::after { left: 0; right: 0; }
+
+    .nav-reserve { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream); background: var(--espresso); padding: 11px 22px; text-decoration: none; transition: background 0.3s; }
+    .nav-reserve:hover { background: var(--caramel); }
+
+    .hamburger { display: none; flex-direction: column; gap: 6px; cursor: none; margin-left: auto; padding: 8px; }
+    .hamburger span { display: block; width: 22px; height: 1px; background: var(--espresso); transition: transform 0.35s, opacity 0.35s, width 0.35s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; width: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu { display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; background: rgba(247,242,234,0.98); backdrop-filter: blur(20px); padding: 2rem 5vw; z-index: 999; transform: translateY(-8px); opacity: 0; transition: transform 0.35s ease, opacity 0.35s ease; pointer-events: none; border-bottom: 1px solid rgba(196,124,58,0.15); }
+    .mobile-menu.open { transform: translateY(0); opacity: 1; pointer-events: all; }
+    .mobile-menu a { display: block; font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding: 15px 0; border-bottom: 1px solid rgba(196,124,58,0.08); transition: color 0.2s, padding-left 0.2s; }
+    .mobile-menu a:hover { color: var(--espresso); padding-left: 8px; }
+
+    /* HERO — split layout, brown panel now 28% only */
+    #hero { min-height: 100vh; display: grid; grid-template-columns: 72% 28%; position: relative; overflow: hidden; }
+
+    .hero-left { display: flex; flex-direction: column; justify-content: flex-end; padding: calc(var(--nav-h) + 5rem) 5vw 8rem 6vw; position: relative; z-index: 2; }
+
+    .hero-eyebrow { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.72rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--caramel); margin-bottom: 1.8rem; animation: fadeUp 1s ease both; display: flex; align-items: center; gap: 14px; }
+    .hero-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--caramel); }
+
+    h1 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: clamp(3.2rem, 5.5vw, 6rem); line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 2rem; animation: fadeUp 1s 0.12s ease both; }
+    h1 em { font-style: italic; color: var(--caramel); font-weight: 400; }
+
+    .hero-desc { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 1rem; letter-spacing: 0.01em; color: var(--muted); line-height: 1.85; max-width: 340px; margin-bottom: 3.2rem; animation: fadeUp 1s 0.24s ease both; }
+
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; animation: fadeUp 1s 0.36s ease both; }
+    .btn-dark { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--espresso); color: var(--cream); padding: 15px 34px; text-decoration: none; transition: background 0.3s, transform 0.2s; display: inline-block; }
+    .btn-dark:hover { background: var(--caramel); transform: translateY(-2px); }
+    .btn-outline { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid var(--espresso); color: var(--espresso); padding: 15px 34px; text-decoration: none; transition: background 0.3s, color 0.3s; display: inline-block; }
+    .btn-outline:hover { background: var(--espresso); color: var(--cream); }
+
+    /* Brown right panel — compact, no wasted space */
+    .hero-right { position: relative; overflow: hidden; }
+    .hero-img-bg { position: absolute; inset: 0; background: linear-gradient(155deg, #2e1508 0%, #18100a 55%, rgba(196,124,58,0.15) 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0; }
+
+    .coffee-art { position: absolute; width: 220px; height: 220px; opacity: 0.1; animation: slowSpin 35s linear infinite; }
+    @keyframes slowSpin { to { transform: rotate(360deg); } }
+
+    .cup-illustration { position: relative; z-index: 2; text-align: center; animation: fadeUp 1.2s 0.3s ease both; }
+
+    .hero-badge-right { position: absolute; bottom: 2rem; left: 1.2rem; right: 1.2rem; background: rgba(247,242,234,0.07); border: 1px solid rgba(196,124,58,0.25); backdrop-filter: blur(12px); padding: 1rem 1.2rem; color: var(--cream); animation: fadeUp 1.2s 0.6s ease both; }
+    .badge-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 400; color: var(--gold-light); line-height: 1; }
+    .badge-text { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; margin-top: 4px; }
+
+    .scroll-hint { position: absolute; bottom: 2rem; right: 1rem; display: flex; flex-direction: column; align-items: center; gap: 7px; font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(247,242,234,0.3); animation: fadeUp 1.2s 0.9s ease both; }
+    .scroll-line { width: 1px; height: 36px; background: linear-gradient(to bottom, rgba(196,124,58,0.9), transparent); animation: scrollPulse 2.2s ease-in-out infinite; }
+    @keyframes scrollPulse { 0%,100%{opacity:0.35} 50%{opacity:1} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
+
+    /* MARQUEE */
+    .divider { background: var(--caramel); overflow: hidden; padding: 1.4rem 0; display: flex; }
+    .marquee-track { display: flex; gap: 2.5rem; animation: marquee 20s linear infinite; white-space: nowrap; flex-shrink: 0; }
+    .marquee-track span { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.72rem; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(247,242,234,0.7); }
+    .marquee-track span.dot { color: var(--cream); }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* STORY */
+    #story { padding: 10rem 5vw; display: grid; grid-template-columns: 1fr 1.15fr; gap: 7rem; align-items: center; }
+
+    .section-eyebrow { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.68rem; letter-spacing: 0.32em; text-transform: uppercase; color: var(--caramel); margin-bottom: 1.6rem; display: flex; align-items: center; gap: 14px; }
+    .section-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--caramel); }
+    .section-eyebrow.center { justify-content: center; }
+    .section-eyebrow.center::before { display: none; }
+
+    h2 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: clamp(2rem, 3.8vw, 3.5rem); line-height: 1.12; letter-spacing: -0.01em; margin-bottom: 2rem; }
+    h2 em { font-style: italic; color: var(--caramel); font-weight: 400; }
+
+    .story-text p { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.97rem; color: var(--muted); line-height: 1.95; margin-bottom: 1.1rem; letter-spacing: 0.01em; }
+
+    .story-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .story-card { background: var(--warm); border: 1px solid rgba(196,124,58,0.15); padding: 2rem 1.5rem; display: flex; flex-direction: column; justify-content: center; }
+    .story-card.tall { grid-row: span 2; justify-content: center; align-items: center; min-height: 280px; background: var(--espresso); }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .story-card.icon-card { align-items: center; text-align: center; }
+    .story-card-icon { font-size: 2.2rem; margin-bottom: 0.8rem; }
+    .story-card-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 400; color: var(--caramel); line-height: 1; }
+    .story-card-label { font-size: 0.62rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+    .story-card-label.light { color: rgba(247,242,234,0.5); }
+    .story-card-body { font-size: 0.8rem; font-weight: 300; color: var(--muted-light); line-height: 1.65; margin-top: 0.5rem; }
+
+    /* MENU */
+    #menu { background: var(--espresso); padding: 10rem 5vw; color: var(--cream); }
+    #menu .section-eyebrow { color: var(--gold-light); }
+    #menu .section-eyebrow::before { background: var(--gold-light); }
+    #menu h2 { color: var(--cream); }
+    #menu h2 em { color: var(--gold-light); }
+
+    .menu-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; margin-top: 4rem; border: 1px solid rgba(196,124,58,0.12); }
+    .menu-item { padding: 2.8rem 2.3rem; border-right: 1px solid rgba(196,124,58,0.12); border-bottom: 1px solid rgba(196,124,58,0.12); position: relative; overflow: hidden; transition: background 0.4s; cursor: none; }
+    .menu-item:nth-child(3n) { border-right: none; }
+    .menu-item:nth-last-child(-n+3) { border-bottom: none; }
+    .menu-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(196,124,58,0.07),transparent); opacity: 0; transition: opacity 0.4s; }
+    .menu-item:hover { background: rgba(196,124,58,0.04); }
+    .menu-item:hover::before { opacity: 1; }
+    .menu-emoji { font-size: 2.2rem; margin-bottom: 1.4rem; display: block; }
+    .menu-name { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 500; color: var(--cream); margin-bottom: 0.4rem; }
+    .menu-origin { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 1rem; opacity: 0.8; }
+    .menu-desc { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.85rem; color: rgba(247,242,234,0.42); line-height: 1.85; margin-bottom: 1.5rem; }
+    .menu-price { font-family: 'Playfair Display', serif; font-size: 1.45rem; font-weight: 400; color: var(--gold-light); }
+
+    /* PROCESS */
+    #process { padding: 10rem 5vw; background: var(--warm); text-align: center; }
+    .process-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; margin-top: 4.5rem; position: relative; }
+    .process-steps::before { content: ''; position: absolute; top: 39px; left: 12%; right: 12%; height: 1px; background: linear-gradient(90deg,transparent,rgba(196,124,58,0.4),transparent); }
+    .step { padding: 0 1.8rem; }
+    .step-num { width: 78px; height: 78px; border: 1px solid var(--caramel); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 400; color: var(--caramel); margin: 0 auto 2rem; background: var(--warm); position: relative; z-index: 1; transition: background 0.3s, color 0.3s; }
+    .step:hover .step-num { background: var(--caramel); color: var(--cream); }
+    .step-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 500; margin-bottom: 0.9rem; }
+    .step-desc { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.84rem; color: var(--muted); line-height: 1.85; }
+
+    /* TESTIMONIAL */
+    #testimonial { padding: 10rem 5vw; text-align: center; position: relative; overflow: hidden; }
+    #testimonial::before { content: '\201C'; position: absolute; font-family: 'Playfair Display', serif; font-size: 24rem; color: rgba(196,124,58,0.055); top: -3rem; left: 4vw; line-height: 1; pointer-events: none; }
+    .testi-quote { font-family: 'DM Serif Display', serif; font-style: italic; font-size: clamp(1.3rem, 2.8vw, 2rem); font-weight: 400; max-width: 700px; margin: 0 auto 2.5rem; line-height: 1.6; position: relative; z-index: 1; color: var(--espresso); }
+    .testi-author { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.74rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--caramel); }
+    .testi-dots { display: flex; gap: 8px; justify-content: center; margin-top: 2.5rem; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(196,124,58,0.28); cursor: none; transition: background 0.3s, transform 0.3s; }
+    .dot.active { background: var(--caramel); transform: scale(1.5); }
+
+    /* NEWSLETTER */
+    #newsletter { background: var(--espresso); padding: 8rem 5vw; text-align: center; color: var(--cream); }
+    #newsletter h2 { color: var(--cream); margin-bottom: 1rem; }
+    #newsletter h2 em { color: var(--gold-light); }
+    #newsletter p { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.92rem; letter-spacing: 0.02em; color: rgba(247,242,234,0.45); margin-bottom: 3rem; line-height: 1.7; }
+    .email-form { display: flex; max-width: 460px; margin: 0 auto; border: 1px solid rgba(196,124,58,0.28); }
+    .email-form input { flex: 1; background: transparent; border: none; padding: 17px 22px; color: var(--cream); font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.88rem; outline: none; cursor: none; }
+    .email-form input::placeholder { color: rgba(247,242,234,0.28); }
+    .email-form button { background: var(--caramel); border: none; padding: 17px 26px; color: var(--cream); font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: none; transition: background 0.3s; }
+    .email-form button:hover { background: var(--gold); }
+
+    /* FOOTER */
+    footer { background: var(--espresso); border-top: 1px solid rgba(196,124,58,0.08); padding: 5rem 5vw 2.5rem; color: var(--cream); }
+    .footer-top { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3.5rem; margin-bottom: 4rem; }
+    .footer-brand-name { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; margin-bottom: 1.2rem; }
+    .footer-brand-name span { color: var(--caramel); }
+    .footer-brand-desc { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.83rem; color: rgba(247,242,234,0.38); line-height: 1.95; }
+    .footer-col-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.66rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 1.5rem; opacity: 0.8; }
+    .footer-col a { display: block; font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.83rem; color: rgba(247,242,234,0.4); text-decoration: none; margin-bottom: 0.85rem; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--caramel); }
+    .footer-bottom { border-top: 1px solid rgba(196,124,58,0.08); padding-top: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-copy { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.68rem; letter-spacing: 0.14em; color: rgba(247,242,234,0.22); }
+
+    /* REVEAL */
+    .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.85s ease, transform 0.85s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-left { opacity: 0; transform: translateX(-36px); transition: opacity 0.85s ease, transform 0.85s ease; }
+    .reveal-left.visible { opacity: 1; transform: none; }
+    .reveal-right { opacity: 0; transform: translateX(36px); transition: opacity 0.85s ease, transform 0.85s ease; }
+    .reveal-right.visible { opacity: 1; transform: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .nav-links, .nav-reserve { display: none; }
+      .hamburger { display: flex; }
+      .mobile-menu { display: block; }
+      #hero { grid-template-columns: 1fr; }
+      .hero-right { min-height: 40vh; }
+      #story { grid-template-columns: 1fr; gap: 3rem; }
+      .menu-grid { grid-template-columns: 1fr; }
+      .menu-item { border-right: none !important; }
+      .process-steps { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+      .process-steps::before { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 540px) {
+      h1 { font-size: 2.8rem; }
+      .hero-btns { flex-direction: column; }
+      .btn-dark, .btn-outline { text-align: center; }
+      .process-steps { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .email-form { flex-direction: column; }
+      .email-form button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">
+    <span class="logo-main">KŌ<span>HI</span></span>
+    <span class="logo-sub">Rare Coffee · Refined</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#hero" class="active">Home</a></li>
+    <li><a href="#story">Our Story</a></li>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#newsletter">Visit</a></li>
+  </ul>
+  <a href="#newsletter" class="nav-reserve">Reserve a Table</a>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#hero">Home</a><a href="#story">Our Story</a>
+  <a href="#menu">Menu</a><a href="#process">Process</a>
+  <a href="#newsletter">Reserve a Table</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Rare Beans · Refined Craft</div>
+    <h1>Where Coffee<br/>Becomes <em>Art.</em></h1>
+    <p class="hero-desc">Single-origin micro-lots sourced from the world's most remote farms. Each cup is a journey through altitude, soil, and soul.</p>
+    <div class="hero-btns">
+      <a href="#menu" class="btn-dark">Explore the Menu</a>
+      <a href="#story" class="btn-outline">Our Story</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-img-bg">
+      <svg class="coffee-art" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="200" r="188" stroke="#c47c3a" stroke-width="0.5"/>
+        <circle cx="200" cy="200" r="158" stroke="#c47c3a" stroke-width="0.5" stroke-dasharray="7 9"/>
+        <circle cx="200" cy="200" r="118" stroke="#c47c3a" stroke-width="0.5"/>
+        <circle cx="200" cy="200" r="78" stroke="#c47c3a" stroke-width="1"/>
+        <line x1="12" y1="200" x2="388" y2="200" stroke="#c47c3a" stroke-width="0.4"/>
+        <line x1="200" y1="12" x2="200" y2="388" stroke="#c47c3a" stroke-width="0.4"/>
+      </svg>
+      <div class="cup-illustration">
+        <svg width="160" height="180" viewBox="0 0 260 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: float 7s ease-in-out infinite; filter: drop-shadow(0 20px 50px rgba(196,124,58,0.3));">
+          <path d="M95 55 C95 45 105 40 105 30 C105 20 95 15 95 5" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/></path>
+          <path d="M130 50 C130 40 140 35 140 25 C140 15 130 10 130 0" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"><animate attributeName="opacity" values="0.4;0.7;0.4" dur="2.5s" begin="0.5s" repeatCount="indefinite"/></path>
+          <path d="M165 55 C165 45 155 40 155 30 C155 20 165 15 165 5" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"><animate attributeName="opacity" values="0.1;0.5;0.1" dur="3.5s" begin="1s" repeatCount="indefinite"/></path>
+          <ellipse cx="130" cy="228" rx="88" ry="14" fill="#2a1508" stroke="#c47c3a" stroke-width="1"/>
+          <ellipse cx="130" cy="224" rx="88" ry="14" fill="#1e1008" stroke="#c47c3a" stroke-width="0.8"/>
+          <ellipse cx="130" cy="224" rx="60" ry="7" fill="#2e180a"/>
+          <path d="M60 130 Q58 195 80 215 Q105 228 130 228 Q155 228 180 215 Q202 195 200 130 Z" fill="#1a0d06" stroke="#c47c3a" stroke-width="1.2"/>
+          <ellipse cx="130" cy="130" rx="70" ry="18" fill="#3d1a08"/>
+          <ellipse cx="130" cy="130" rx="50" ry="12" fill="#5a2810" opacity="0.9"/>
+          <path d="M105 130 Q120 122 130 130 Q140 138 155 130" stroke="#c8884a" stroke-width="1.2" fill="none" opacity="0.6"/>
+          <ellipse cx="130" cy="130" rx="70" ry="18" fill="none" stroke="#c47c3a" stroke-width="1.5"/>
+          <path d="M68 148 Q66 180 78 202" stroke="rgba(196,124,58,0.18)" stroke-width="8" stroke-linecap="round" fill="none"/>
+          <path d="M198 148 C230 148 240 165 238 182 C236 199 222 210 198 208" stroke="#c47c3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M198 148 C226 150 234 166 232 182 C230 196 218 207 198 208" stroke="#2a1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hero-badge-right">
+        <div class="badge-num">2009</div>
+        <div class="badge-text">Est. in Kyoto</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="divider">
+  <div class="marquee-track">
+    <span>Single Origin</span><span class="dot"> ✦ </span><span>Ethiopia Yirgacheffe</span><span class="dot"> ✦ </span><span>Panama Geisha</span><span class="dot"> ✦ </span><span>Kenya AA</span><span class="dot"> ✦ </span><span>Colombia Huila</span><span class="dot"> ✦ </span><span>Yemen Mocha</span><span class="dot"> ✦ </span><span>Jamaica Blue Mountain</span><span class="dot"> ✦ </span><span>Kona Hawaii</span><span class="dot"> ✦ </span><span>Single Origin</span><span class="dot"> ✦ </span><span>Ethiopia Yirgacheffe</span><span class="dot"> ✦ </span><span>Panama Geisha</span><span class="dot"> ✦ </span><span>Kenya AA</span><span class="dot"> ✦ </span><span>Colombia Huila</span><span class="dot"> ✦ </span><span>Yemen Mocha</span><span class="dot"> ✦ </span><span>Jamaica Blue Mountain</span><span class="dot"> ✦ </span><span>Kona Hawaii</span><span class="dot"> ✦ </span>
+  </div>
+</div>
+
+<!-- STORY -->
+<section id="story">
+  <div class="story-text reveal-left">
+    <div class="section-eyebrow">Our Story</div>
+    <h2>Born from a<br/><em>Deep Obsession</em><br/>with Perfection.</h2>
+    <p>KŌHI — Japanese for coffee — was founded in Kyoto in 2009 by master roaster Hiroshi Tanaka. After a decade studying under the world's finest roasters from Addis Ababa to Amsterdam, he returned home with one mission: to serve coffee at its absolute purest.</p>
+    <p>Every bean we source tells a story. Every roast profile is obsessed over for weeks. Every cup is a meditation in flavour.</p>
+  </div>
+  <div class="story-visual reveal-right">
+    <div class="story-card tall" style="background: var(--espresso); align-items: center; justify-content: center;">
+      <svg width="140" height="160" viewBox="0 0 260 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: float 7s ease-in-out infinite; filter: drop-shadow(0 16px 40px rgba(196,124,58,0.3));">
+        <path d="M95 55 C95 45 105 40 105 30 C105 20 95 15 95 5" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"><animate attributeName="opacity" values="0.2;0.7;0.2" dur="3s" repeatCount="indefinite"/><animate attributeName="d" values="M95 55 C95 45 105 40 105 30 C105 20 95 15 95 5;M95 55 C98 44 88 39 92 29 C96 19 88 14 92 4;M95 55 C95 45 105 40 105 30 C105 20 95 15 95 5" dur="3s" repeatCount="indefinite"/></path>
+        <path d="M130 50 C130 40 140 35 140 25 C140 15 130 10 130 0" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"><animate attributeName="opacity" values="0.4;0.8;0.4" dur="2.5s" begin="0.5s" repeatCount="indefinite"/></path>
+        <path d="M165 55 C165 45 155 40 155 30 C155 20 165 15 165 5" stroke="#c47c3a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"><animate attributeName="opacity" values="0.1;0.5;0.1" dur="3.5s" begin="1s" repeatCount="indefinite"/></path>
+        <ellipse cx="130" cy="228" rx="88" ry="14" fill="#2a1508" stroke="#c47c3a" stroke-width="1"/>
+        <ellipse cx="130" cy="224" rx="88" ry="14" fill="#1e1008" stroke="#c47c3a" stroke-width="0.8"/>
+        <ellipse cx="130" cy="224" rx="60" ry="7" fill="#2e180a"/>
+        <path d="M60 130 Q58 195 80 215 Q105 228 130 228 Q155 228 180 215 Q202 195 200 130 Z" fill="#1a0d06" stroke="#c47c3a" stroke-width="1.2"/>
+        <ellipse cx="130" cy="130" rx="70" ry="18" fill="#3d1a08"/>
+        <ellipse cx="130" cy="130" rx="50" ry="12" fill="#5a2810" opacity="0.9"/>
+        <path d="M105 130 Q120 122 130 130 Q140 138 155 130" stroke="#c8884a" stroke-width="1.2" fill="none" opacity="0.6"/>
+        <ellipse cx="130" cy="130" rx="70" ry="18" fill="none" stroke="#c47c3a" stroke-width="1.5"/>
+        <path d="M68 148 Q66 180 78 202" stroke="rgba(196,124,58,0.18)" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <path d="M198 148 C230 148 240 165 238 182 C236 199 222 210 198 208" stroke="#c47c3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M198 148 C226 150 234 166 232 182 C230 196 218 207 198 208" stroke="#2a1508" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="story-card-label light" style="margin-top: 1rem;">Master Roasted</div>
+    </div>
+    <div class="story-card">
+      <div class="story-card-num">47</div>
+      <div class="story-card-label">Origin Countries</div>
+      <div class="story-card-body">Direct relationships with farmers who share our values.</div>
+    </div>
+    <div class="story-card icon-card">
+      <div class="story-card-icon">🌿</div>
+      <div class="story-card-label">Farm Direct</div>
+    </div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu">
+  <div class="reveal">
+    <div class="section-eyebrow">Signature Menu</div>
+    <h2>Rare Cups, <em>Carefully Crafted.</em></h2>
+  </div>
+  <div class="menu-grid reveal">
+    <div class="menu-item"><span class="menu-emoji">🫘</span><div class="menu-name">Panama Geisha</div><div class="menu-origin">Boquete, Panama · 1,700m</div><div class="menu-desc">Floral jasmine, bergamot, and a luminous peach finish. The world's most celebrated varietal — prepared with reverence.</div><div class="menu-price">₹ 980</div></div>
+    <div class="menu-item"><span class="menu-emoji">☕</span><div class="menu-name">Ethiopia Yirgacheffe</div><div class="menu-origin">Gedeo Zone · 2,200m</div><div class="menu-desc">Bright lemon zest, wild blueberry, and an extraordinarily clean, tea-like body. The birthplace of coffee.</div><div class="menu-price">₹ 720</div></div>
+    <div class="menu-item"><span class="menu-emoji">🍵</span><div class="menu-name">Yemen Mocha</div><div class="menu-origin">Haraaz Mountains · 2,500m</div><div class="menu-desc">Dark chocolate, dried fig, and ancient soil. One of the rarest coffees on earth — harvested by hand on terraces.</div><div class="menu-price">₹ 1,200</div></div>
+    <div class="menu-item"><span class="menu-emoji">🌿</span><div class="menu-name">Kenya AA Peaberry</div><div class="menu-origin">Nyeri County · 1,800m</div><div class="menu-desc">Blackcurrant, tomato leaf, and a sharp acidity that softens into caramel on the back palate.</div><div class="menu-price">₹ 850</div></div>
+    <div class="menu-item"><span class="menu-emoji">✨</span><div class="menu-name">Kōhi Signature Blend</div><div class="menu-origin">Our House Blend · Kyoto</div><div class="menu-desc">A carefully balanced harmony of three origins — perfect with or without milk. Our daily ritual.</div><div class="menu-price">₹ 580</div></div>
+    <div class="menu-item"><span class="menu-emoji">🫙</span><div class="menu-name">Cold Brew Reserve</div><div class="menu-origin">48-Hour Steep · Chilled</div><div class="menu-desc">Silky, low-acid, and intensely smooth. Steeped for 48 hours in filtered water at 4°C. Pure patience.</div><div class="menu-price">₹ 650</div></div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="reveal">
+    <div class="section-eyebrow center">How We Work</div>
+    <h2>From Farm to <em>Your Cup.</em></h2>
+  </div>
+  <div class="process-steps reveal">
+    <div class="step"><div class="step-num">01</div><div class="step-title">Origin Sourcing</div><div class="step-desc">We visit farms personally, cupping hundreds of lots to select only the top 1% of each harvest.</div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">Precision Roasting</div><div class="step-desc">Each bean has a unique roast profile developed over weeks, roasted in small 5kg batches.</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Quality Control</div><div class="step-desc">Every roast is cupped by our Q-Graders before a single gram leaves the roastery.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Served with Care</div><div class="step-desc">Brewed to order by trained baristas who understand the final cup is a year's work.</div></div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section id="testimonial">
+  <div class="reveal">
+    <div class="testi-quote" id="testiQuote">"KŌHI changed how I think about coffee entirely. The Yemen Mocha was a spiritual experience — I sat with it for an hour."</div>
+    <div class="testi-author" id="testiAuthor">— Priya Sharma, Mumbai</div>
+    <div class="testi-dots">
+      <div class="dot active" onclick="changeTesti(0)"></div>
+      <div class="dot" onclick="changeTesti(1)"></div>
+      <div class="dot" onclick="changeTesti(2)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="reveal">
+    <div class="section-eyebrow center" style="color:var(--gold-light);justify-content:center;">Reserve</div>
+    <h2>Visit <em>KŌHI.</em></h2>
+    <p>Join our list for exclusive tasting events, new arrivals, and seasonal menus.</p>
+    <form class="email-form" onsubmit="subForm(event)">
+      <input type="email" placeholder="your@email.com" required/>
+      <button type="submit">Subscribe ✦</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand-name">KŌ<span>HI</span></div>
+      <div class="footer-brand-desc">Rare coffee, refined craft.<br/>Sourced from the world's finest<br/>micro-lot farms since 2009.</div>
+    </div>
+    <div class="footer-col"><div class="footer-col-title">Visit</div><a href="#">12 Nishiki Lane, Kyoto</a><a href="#">Mumbai — BKC</a><a href="#">Delhi — Lodhi Colony</a><a href="#">Open Daily 7am – 9pm</a></div>
+    <div class="footer-col"><div class="footer-col-title">Explore</div><a href="#menu">Our Menu</a><a href="#story">The Story</a><a href="#process">The Process</a><a href="#">Bean Subscriptions</a></div>
+    <div class="footer-col"><div class="footer-col-title">Connect</div><a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">hello@kohi.coffee</a></div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 KŌHI Coffee. All rights reserved.</div>
+    <div class="footer-copy">Crafted with obsession ✦</div>
+  </div>
+</footer>
+
+<script>
+  const cur = document.getElementById('cur'), ring = document.getElementById('cur-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function tick(){cur.style.transform=`translate(${mx-3.5}px,${my-3.5}px)`;rx+=(mx-rx)*0.1;ry+=(my-ry)*0.1;ring.style.transform=`translate(${rx-15}px,${ry-15}px)`;requestAnimationFrame(tick);})();
+  document.querySelectorAll('a,button,.menu-item,.step').forEach(el=>{el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));});
+
+  const navbar=document.getElementById('navbar'),sections=document.querySelectorAll('section[id]'),links=document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll',()=>{navbar.classList.toggle('scrolled',scrollY>40);let c='';sections.forEach(s=>{if(scrollY>=s.offsetTop-120)c=s.id;});links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+c));},{passive:true});
+
+  const hbg=document.getElementById('hamburger'),mob=document.getElementById('mobileMenu');
+  hbg.addEventListener('click',()=>{hbg.classList.toggle('open');mob.classList.toggle('open');});
+  mob.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{hbg.classList.remove('open');mob.classList.remove('open');}));
+
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:0.1});
+  document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el=>obs.observe(el));
+
+  const testis=[{q:'"KŌHI changed how I think about coffee entirely. The Yemen Mocha was a spiritual experience — I sat with it for an hour."',a:'— Priya Sharma, Mumbai'},{q:'"The Panama Geisha is unlike anything I have tasted. Floral, delicate, impossibly complex. Worth every rupee."',a:'— Arjun Mehta, Delhi'},{q:'"I\'ve been to coffee shops on four continents. KŌHI is in a league of its own."',a:'— Aisha Kapoor, Bangalore'}];
+  function changeTesti(i){document.getElementById('testiQuote').textContent=testis[i].q;document.getElementById('testiAuthor').textContent=testis[i].a;document.querySelectorAll('.testi-dots .dot').forEach((d,j)=>d.classList.toggle('active',j===i));}
+  let ti=0;setInterval(()=>{ti=(ti+1)%3;changeTesti(ti);},5000);
+
+  function subForm(e){e.preventDefault();const btn=e.target.querySelector('button');btn.textContent='Thank You ✦';btn.style.background='#2a6b3c';setTimeout(()=>{btn.textContent='Subscribe ✦';btn.style.background='';e.target.reset();},3000);}
+</script>
+</body>
+</html>
